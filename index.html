@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404星球 | 迷失在宇宙中</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0a0a2a;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        
+        h1 {
+            font-size: 4em;
+            margin-bottom: 0;
+        }
+        
+        p {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+        
+        .planet {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            background: radial-gradient(circle at 30px 30px, #5cabff, #000);
+            border-radius: 50%;
+            box-shadow: inset 0 0 50px #fff, 0 0 50px #5cabff;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #5cabff;
+            color: #000;
+            text-decoration: none;
+            font-size: 1.2em;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: #fff;
+            box-shadow: 0 0 20px #5cabff;
+            transform: translateY(-2px);
+        }
+        
+        .link-info {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #ccc;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #5cabff;
+        }
+    </style>
+</head>
+<body>
+    <div class="planet"></div>
+    <h1>404</h1>
+    <p>你来到了404星球，这里一片荒凉。</p>
+    <p>点击下面的按钮，随机传送到另一个星球吧！</p>
+    
+    <button id="jump-btn" class="btn">随机传送</button>
+    
+    <div class="link-info" id="link-info"></div>
+    <div class="loading" id="loading">正在准备传送...</div>
+    
+    <script>
+        // 获取按钮
+        const jumpBtn = document.getElementById('jump-btn');
+        const linkInfo = document.getElementById('link-info');
+        const loading = document.getElementById('loading');
+        
+        // 定义JSON文件的路径，因为和404.html在同一目录下
+        const jsonUrl = 'links.json';
+        
+        // 获取JSON数据并随机选择一个链接
+        function loadAndSetupLinks() {
+            fetch(jsonUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('无法加载链接列表');
+                    }
+                    return response.json();
+                })
+                .then(links => {
+                    if (links && links.length > 0) {
+                        // 显示链接数量
+                        linkInfo.innerHTML = `可用的目的地：${links.length} 个`;
+                        
+                        // 设置按钮点击事件
+                        jumpBtn.onclick = function() {
+                            randomJump(links);
+                        };
+                        
+                        // 显示链接列表
+                        displayLinks(links);
+                    } else {
+                        console.error('JSON中没有找到链接');
+                        linkInfo.innerHTML = '没有可用的链接';
+                        jumpBtn.textContent = '无可用链接';
+                        jumpBtn.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取链接时出错:', error);
+                    linkInfo.innerHTML = '无法加载链接列表';
+                    jumpBtn.textContent = '加载失败';
+                    jumpBtn.disabled = true;
+                });
+        }
+        
+        // 随机跳转函数
+        function randomJump(links) {
+            loading.style.display = 'block';
+            jumpBtn.disabled = true;
+            jumpBtn.textContent = '传送中...';
+            
+            // 随机选择一个链接
+            const randomIndex = Math.floor(Math.random() * links.length);
+            const randomLink = links[randomIndex];
+            
+            // 显示即将跳转的链接
+            linkInfo.innerHTML = `即将前往：${randomLink}`;
+            
+            // 添加一点延迟，让用户看到动画
+            setTimeout(() => {
+                // 跳转到随机链接
+                window.location.href = randomLink;
+            }, 800);
+        }
+        
+        // 显示链接列表
+        function displayLinks(links) {
+            let linksHTML = '<div style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; text-align: left;">';
+            linksHTML += '<h3 style="color: #5cabff; margin-bottom: 10px;">可用链接：</h3>';
+            linksHTML += '<ul style="list-style-type: none; padding: 0;">';
+            
+            links.forEach(link => {
+                try {
+                    const url = new URL(link);
+                    linksHTML += `<li style="margin: 8px 0; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px; word-break: break-all;">
+                        ${url.hostname} <span style="color: #888; font-size: 0.9em;">(${link})</span>
+                    </li>`;
+                } catch {
+                    linksHTML += `<li style="margin: 8px 0; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px; word-break: break-all;">
+                        ${link}
+                    </li>`;
+                }
+            });
+            
+            linksHTML += '</ul></div>';
+            linkInfo.innerHTML += linksHTML;
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', loadAndSetupLinks);
+    </script>
+</body>
+</html>
